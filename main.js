@@ -23,7 +23,12 @@ var ball = {
 rightWristX = 0;
 rightWristY = 0;
 score_rightWrist = 0;
-game_status = "";
+gameStatus = "";
+
+function preload(){
+  var ball_touch_paddel = loadSound("ball_touch_paddel.wav");
+  var missed = loadSound("missed.wav");
+}
 
 function setup(){
   var canvas =  createCanvas(700,600);
@@ -32,8 +37,8 @@ function setup(){
   video.hide();
   poseNet = ml5.poseNet(video , modelLoaded);
   poseNet.on('pose' , gotPoses);
-}
 
+}
 function gotPoses(results){
   if(results.length > 0){
     console.log(results);
@@ -41,6 +46,11 @@ function gotPoses(results){
     rightWristY = results[0].pose.rightWrist.y;
     score_rightWrist = results[0].pose.keypoints[10].score;
   }
+}
+
+function startGame(){
+  gameStatus = "Start";
+  document.getElementById("status").innerHTML = "Game is Loading...";
 }
 
 function modelLoaded(){
@@ -65,6 +75,10 @@ function draw(){
     stroke("red");
     circle(rightWristX,rightWristY,30);
   }
+
+  if(gameStatus == "Start"){
+    document.getElementById("status").innerHTML = "Game is Loaded";
+  
  
    //funtion paddleInCanvas call 
    paddleInCanvas();
@@ -73,7 +87,7 @@ function draw(){
    fill(250,0,0);
     stroke(0,0,250);
     strokeWeight(0.5);
-   paddle1Y = mouseY; 
+   paddle1Y = rightWristY; 
    rect(paddle1X,paddle1Y,paddle1,paddle1Height,100);
    
    
@@ -93,6 +107,7 @@ function draw(){
    
    //function move call which in very important
     move();
+  }
 }
 
 
@@ -145,9 +160,11 @@ function move(){
   if (ball.x-2.5*ball.r/2< 0){
   if (ball.y >= paddle1Y&& ball.y <= paddle1Y + paddle1Height) {
     ball.dx = -ball.dx+0.5; 
+    ball_touch_paddel.play();
   }
   else{
     pcscore++;
+    missed.play();
     reset();
     navigator.vibrate(100);
   }
@@ -160,7 +177,7 @@ if(pcscore ==4){
     stroke("white");
     textSize(25)
     text("Game Over!☹☹",width/2,height/2);
-    text("Reload The Page!",width/2,height/2+30)
+    text("Press restart to play again!",width/2,height/2+30)
     noLoop();
     pcscore = 0;
 }
@@ -189,4 +206,9 @@ function paddleInCanvas(){
   if(mouseY < 0){
     mouseY =0;
   }  
+}
+
+function restart(){
+  pcscore = 0;
+  loop();
 }
